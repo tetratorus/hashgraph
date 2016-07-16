@@ -12,7 +12,7 @@ You can use hashgraph for any javascript project that is run on several nodes th
 
 First, install the hashgraph package.
 
-    npm install hashgraph --hashgraph
+    npm install hashgraph --save
     
 ### Key Generation
 
