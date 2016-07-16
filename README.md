@@ -4,6 +4,8 @@ This is a [hashgraph](https://en.wikipedia.org/wiki/Hashgraph) implementation wr
 
 ## Get Started
 
+NOTE: This code is NOT considered ready for usage before version 1.0.0. Don't use this code if you don't know what you're doing.
+
 You can use hashgraph for any javascript project that is run on several nodes that require some kind of consensus. For example for a replicated log, or state machine.
 
 ### Install Hashgraph
