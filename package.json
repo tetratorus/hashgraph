@@ -1,0 +1,23 @@
+{
+  "name": "hashgraph",
+  "description": "This is a hashgraph implementation written in javascript. It is currently in development and not yet ready to be used.",
+  "version": "0.0.2",
+  "main": "index.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/buhrmi/hashgraph.git"
+  },
+  "keywords": [
+    "hashgraph",
+    "consensus",
+    "blockchain"
+  ],
+  "author": "Stefan Buhrmester <buhrmi@gmail.com> (http://github.com/buhrmi)",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/buhrmi/hashgraph/issues"
+  },
+  "homepage": "https://github.com/buhrmi/hashgraph#readme"
+}
