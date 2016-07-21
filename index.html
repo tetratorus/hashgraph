@@ -1,0 +1,33 @@
+<html>
+<head>
+  <title>Hashgraph Consensus</title>
+  <script src="lib/jquery-3.1.0.js"></script>
+  <script src="lib/raphael.js"></script>
+  <script src="build/hashgraph.js"></script>
+  <style type="text/css">
+        #hashgraph_visualizer {
+            width: 100%;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+  <h1>Hashgraph Consensus Tutorial</h1>
+  <p>An introduction to hashgraph consensus by Stefan Buhrmester</p>
+  <h2>What is Hashgraph Consensus</h2>
+  <p>
+    The hashgraph consensus algorithm is a rather new algorithm that creates and maintains a
+    consensus over the correct order of events that occur among several interconnected nodes.
+  </p>
+  <p>
+    It is particularily useful when creating distributed systems that need to operate on a globally agreed
+    state, such as log replication, distributed ledgers or shared databases.
+  </p>
+  <p>
+    It operates without leader election, is optionally byzantine, runs in a dynamic environment, and depending on implementation can be very bandwidth-efficient.
+  </p>
+  <h2>Demo</h2>
+  <div id="hashgraph_visualizer"></div>
+  <button id="add-node">Add Node</button>
+</body>
+</html>
