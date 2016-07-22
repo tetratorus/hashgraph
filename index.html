@@ -7,7 +7,7 @@
   <style type="text/css">
         #hashgraph_visualizer {
             width: 900px;
-            height: 800px;
+            height: 815px;
             display: inline-block;
             vertical-align: top;
             border: 1px solid #ccc;
@@ -18,6 +18,10 @@
           vertical-align: top;
           border: 1px solid #ccc;
           padding: 20px;
+        }
+        pre {
+          border: 1px solid #ccc;
+          padding: 5px;
         }
     </style>
 </head>
@@ -39,12 +43,14 @@
   <h2>Demo</h2>
   <div id="hashgraph_visualizer"></div>
   <div id="controls">
+    
     <p>Controls</p>
     <button id="add_node">Add Node</button>
     <div id="gossips">
       
     </div>
-    
+    <p>Log</p>
+    <pre id="log" style="width: 100%"></pre>
   </div>
 </body>
 </html>
