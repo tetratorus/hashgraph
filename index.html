@@ -6,21 +6,31 @@
   <script src="build/hashgraph.js"></script>
   <style type="text/css">
         #hashgraph_visualizer {
-            width: 100%;
-            height: 300px;
+            width: 900px;
+            height: 800px;
+            display: inline-block;
+            vertical-align: top;
+            border: 1px solid #ccc;
+        }
+        #controls {
+          width: 300px;
+          display: inline-block;
+          vertical-align: top;
+          border: 1px solid #ccc;
+          padding: 20px;
         }
     </style>
 </head>
 <body>
-  <h1>Hashgraph Consensus Tutorial</h1>
+  <h1>Hashgraph Consensus</h1>
   <p>An introduction to hashgraph consensus by Stefan Buhrmester</p>
-  <h2>What is Hashgraph Consensus</h2>
+  <h2>What is Hashgraph Consensus?</h2>
   <p>
-    The hashgraph consensus algorithm is a rather new algorithm that creates and maintains a
-    consensus over the correct order of events that occur among several interconnected nodes.
+    First conceived by Leemon Baird, the hashgraph consensus algorithm is a generic algorithm that runs on connected nodes of a distributed system and maintains a
+    consensus over the correct order of events that occur among the nodes that make up the system.
   </p>
   <p>
-    It is particularily useful when creating distributed systems that need to operate on a globally agreed
+    It is particularily useful for the operation of distributed systems that need to operate on a globally agreed
     state, such as log replication, distributed ledgers or shared databases.
   </p>
   <p>
@@ -28,6 +38,13 @@
   </p>
   <h2>Demo</h2>
   <div id="hashgraph_visualizer"></div>
-  <button id="add-node">Add Node</button>
+  <div id="controls">
+    <p>Controls</p>
+    <button id="add_node">Add Node</button>
+    <div id="gossips">
+      
+    </div>
+    
+  </div>
 </body>
 </html>
