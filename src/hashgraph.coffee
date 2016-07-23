@@ -31,23 +31,44 @@ makeMachine = (name, nodes) ->
   
   receiveMessage = (message) ->
     receivedEvents = JSON.parse(message)
+    learnedSomething = false
     for receivedEvent in receivedEvents
+      old = false
       fromNodeName = receivedEvent.node
       unless knownMachines[fromNodeName]
         for possibleMachine in Visualizer.machines
           if possibleMachine.name == fromNodeName
             knownMachines[fromNodeName] = possibleMachine 
-          
+      for event in events
+        if event.hash == receivedEvent.hash  
+          old = true 
+          break
+      continue if old
+      events.push(receivedEvent)
+      learnedSomething = true
+    return unless learnedSomething
+    console.log(receivedEvents)
     
+    newEvent = {node: machine.name, hash: Math.random(), parentHash: getLastEventFrom(name).hash, fromHash: getLastEventFrom(fromNodeName).hash, time: new Date()}
+    events.push(newEvent)
+    
+  getLastEventFrom = (nodeName) ->
+    lastEvent = null
+    lastEvent = event for event in events when event.node == nodeName
+    lastEvent
+    
+  findEvent = (hash) ->
+    return event for event in events when event.hash == hash
   
   Object.assign machine, 
     name: name,
     gossip: gossip,
     receiveMessage: receiveMessage,
     events: events,
-    knownMachines: knownMachines
+    knownMachines: knownMachines,
+    findEvent: findEvent
     
-  events.push({node: machine.name, hash: Math.random()})
+  events.push(node: machine.name, hash: Math.random(), time: new Date(), txs: ['createme'])
   
   
   
@@ -60,6 +81,7 @@ width = 600
 eventWidth = 30
 topOffset = 20
 paddingLeft = 150
+circles = {}
 draw = ->
   for machine, machineIndex in Visualizer.machines
     machine.set.remove() if machine.set
@@ -86,9 +108,15 @@ draw = ->
       index += 1
     for event, eventIndex in machine.events
       eventX = machineX + eventWidth + Object.keys(machine.knownMachines).indexOf(event.node) * eventWidth
-      circle = Visualizer.circle(eventX, timelineStartY, 10)
+      circle = Visualizer.circle(eventX, timelineStartY - 22 * eventIndex, 10)
       circle.attr("fill", "#EEE")
       circle.attr("stroke", "#333")
+      if event.fromHash
+        fromEvent = machine.findEvent(event.fromHash)
+        if fromEvent && circles[fromEvent.hash]
+          path = "M #{circles[fromEvent.hash].attr('cx')},#{circles[fromEvent.hash].attr('cy')} L #{circle.attr('cx')} #{circle.attr('cy')}"
+          machine.set.push(Visualizer.path(path))
+      circles[event.hash] = circle
       machine.set.push(circle)
 
 
