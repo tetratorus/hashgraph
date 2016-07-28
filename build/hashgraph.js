@@ -32,12 +32,12 @@
   };
 
   makeMachine = function(name, nodes) {
-    var events, findEvent, getLastEventFrom, gossip, knownMachines, machine, receiveMessage;
+    var canSee, canStronglySee, consensus, determineRound, divideRounds, events, findEvent, getLastEventFrom, gossip, knownMachines, machine, receiveMessage;
     machine = {};
     knownMachines = {};
     events = [];
     gossip = function() {
-      var randomName, receiver;
+      var event, eventsToSend, i, len, randomName, receiver;
       if (Object.keys(knownMachines).length === 1) {
         return alert("Dont know any machines. Cant gossip");
       }
@@ -45,7 +45,18 @@
         randomName = Object.keys(knownMachines)[Math.floor(Math.random() * Object.keys(knownMachines).length)];
         receiver = knownMachines[randomName];
       }
-      return Visualizer.sendMessage(machine, receiver, JSON.stringify(events));
+      eventsToSend = [];
+      for (i = 0, len = events.length; i < len; i++) {
+        event = events[i];
+        eventsToSend.push({
+          node: event.node,
+          hash: event.hash,
+          parentHash: event.parentHash,
+          time: event.time,
+          fromHash: event.fromHash
+        });
+      }
+      return Visualizer.sendMessage(machine, receiver, JSON.stringify(eventsToSend));
     };
     receiveMessage = function(message) {
       var event, fromNodeName, i, j, k, learnedSomething, len, len1, len2, newEvent, old, possibleMachine, receivedEvent, receivedEvents, ref;
@@ -75,12 +86,13 @@
           continue;
         }
         events.push(receivedEvent);
+        receivedEvent.selfParent = findEvent(receivedEvent.parentHash);
+        receivedEvent.otherParent = findEvent(receivedEvent.fromHash);
         learnedSomething = true;
       }
       if (!learnedSomething) {
         return;
       }
-      console.log(receivedEvents);
       newEvent = {
         node: machine.name,
         hash: Math.random(),
@@ -88,7 +100,8 @@
         fromHash: getLastEventFrom(fromNodeName).hash,
         time: new Date()
       };
-      return events.push(newEvent);
+      events.push(newEvent);
+      return consensus();
     };
     getLastEventFrom = function(nodeName) {
       var event, i, lastEvent, len;
@@ -109,6 +122,50 @@
           return event;
         }
       }
+    };
+    consensus = function() {
+      return divideRounds();
+    };
+    divideRounds = function() {
+      var i, len, results, x;
+      results = [];
+      for (i = 0, len = events.length; i < len; i++) {
+        x = events[i];
+        if (x.round) {
+          continue;
+        }
+        results.push(determineRound(x));
+      }
+      return results;
+    };
+    determineRound = function(x) {
+      var parent1, parent2, see, stronglySee;
+      if (!x.parentHash) {
+        x.round = 1;
+        x.witness = true;
+        return;
+      }
+      parent1 = findEvent(x.parentHash);
+      if (!parent1.round) {
+        determineRound(parent1);
+      }
+      parent2 = findEvent(y.fromHash);
+      if (!parent2.round) {
+        determineRound(parent2);
+      }
+      see = [];
+      stronglySee = [];
+      return x.witness = x.round > findEvent(x.parentHash).round && x.round > findEvent(x.fromHash).round;
+    };
+    canStronglySee = function(x, y) {};
+    canSee = function(x, y) {
+      if ((x.parentHash === y.hash) || (x.fromHash === y.hash)) {
+        return true;
+      }
+      if (!x.parentHash) {
+        return false;
+      }
+      return canSee(findEvent(x.parentHash), y) || canSee(findEvent(x.fromHash), y);
     };
     Object.assign(machine, {
       name: name,

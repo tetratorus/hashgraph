@@ -26,8 +26,10 @@ makeMachine = (name, nodes) ->
     until receiver and receiver.name != name
       randomName = Object.keys(knownMachines)[Math.floor(Math.random()*Object.keys(knownMachines).length)]
       receiver = knownMachines[randomName]
-    
-    Visualizer.sendMessage(machine, receiver, JSON.stringify(events))
+    eventsToSend = []
+    for event in events
+      eventsToSend.push node: event.node, hash: event.hash, parentHash: event.parentHash, time: event.time, fromHash: event.fromHash
+    Visualizer.sendMessage(machine, receiver, JSON.stringify(eventsToSend))
   
   receiveMessage = (message) ->
     receivedEvents = JSON.parse(message)
@@ -45,12 +47,14 @@ makeMachine = (name, nodes) ->
           break
       continue if old
       events.push(receivedEvent)
+      receivedEvent.selfParent = findEvent(receivedEvent.parentHash)
+      receivedEvent.otherParent = findEvent(receivedEvent.fromHash)
       learnedSomething = true
     return unless learnedSomething
-    console.log(receivedEvents)
     
     newEvent = {node: machine.name, hash: Math.random(), parentHash: getLastEventFrom(name).hash, fromHash: getLastEventFrom(fromNodeName).hash, time: new Date()}
     events.push(newEvent)
+    consensus()
     
   getLastEventFrom = (nodeName) ->
     lastEvent = null
@@ -59,6 +63,44 @@ makeMachine = (name, nodes) ->
     
   findEvent = (hash) ->
     return event for event in events when event.hash == hash
+  
+  consensus = ->
+    divideRounds()
+    
+  divideRounds = ->
+    for x in events
+      continue if x.round
+      determineRound(x)
+  
+  determineRound = (x) ->
+    unless x.parentHash
+      x.round = 1
+      x.witness = true
+      return
+    
+    parent1 = findEvent(x.parentHash)
+    determineRound(parent1) unless parent1.round
+    parent2 = findEvent(y.fromHash)
+    determineRound(parent2) unless parent2.round
+    
+    see = []
+    stronglySee = []
+    
+    # TODO: move down ancestor tree and build a list of events that can be strongly seen
+    
+    
+    x.witness = x.round > findEvent(x.parentHash).round && x.round > findEvent(x.fromHash).round
+  
+  canStronglySee = (x, y) ->
+    
+  
+  canSee = (x, y) ->
+    # XXX: In a better implementation, we would search upwards from Y instead downwards from X
+    return true if (x.parentHash == y.hash) || (x.fromHash == y.hash)
+    # TODO: handle forks
+    return false unless x.parentHash
+    return canSee(findEvent(x.parentHash), y) || canSee(findEvent(x.fromHash), y)
+    
   
   Object.assign machine, 
     name: name,
