@@ -51,9 +51,9 @@
         eventsToSend.push({
           node: event.node,
           hash: event.hash,
-          parentHash: event.parentHash,
+          selfParentHash: event.selfParentHash,
           time: event.time,
-          fromHash: event.fromHash
+          fromParentHash: event.fromParentHash
         });
       }
       return Visualizer.sendMessage(machine, receiver, JSON.stringify(eventsToSend));
@@ -86,8 +86,8 @@
           continue;
         }
         events.push(receivedEvent);
-        receivedEvent.selfParent = findEvent(receivedEvent.parentHash);
-        receivedEvent.otherParent = findEvent(receivedEvent.fromHash);
+        receivedEvent.selfParent = findEvent(receivedEvent.selfParentHash);
+        receivedEvent.otherParent = findEvent(receivedEvent.fromParentHash);
         learnedSomething = true;
       }
       if (!learnedSomething) {
@@ -96,8 +96,8 @@
       newEvent = {
         node: machine.name,
         hash: Math.random(),
-        parentHash: getLastEventFrom(name).hash,
-        fromHash: getLastEventFrom(fromNodeName).hash,
+        selfParentHash: getLastEventFrom(name).hash,
+        fromParentHash: getLastEventFrom(fromNodeName).hash,
         time: new Date()
       };
       events.push(newEvent);
@@ -139,33 +139,34 @@
       return results;
     };
     determineRound = function(x) {
-      var parent1, parent2, see, stronglySee;
-      if (!x.parentHash) {
+      var parent1, parent2;
+      if (!x.selfParentHash) {
         x.round = 1;
         x.witness = true;
         return;
       }
-      parent1 = findEvent(x.parentHash);
+      parent1 = findEvent(x.selfParentHash);
       if (!parent1.round) {
         determineRound(parent1);
       }
-      parent2 = findEvent(y.fromHash);
-      if (!parent2.round) {
-        determineRound(parent2);
+      if (x.fromParentHash) {
+        parent2 = findEvent(x.fromParentHash);
+        if (!parent2.round) {
+          determineRound(parent2);
+        }
       }
-      see = [];
-      stronglySee = [];
-      return x.witness = x.round > findEvent(x.parentHash).round && x.round > findEvent(x.fromHash).round;
+      x.round = Math.max(parent1.round, (parent2 != null ? parent2.round : void 0) || 1);
+      return x.witness = x.round > findEvent(x.selfParentHash).round && x.round > findEvent(x.fromParentHash).round;
     };
     canStronglySee = function(x, y) {};
     canSee = function(x, y) {
-      if ((x.parentHash === y.hash) || (x.fromHash === y.hash)) {
+      if ((x.selfParentHash === y.hash) || (x.fromParentHash === y.hash)) {
         return true;
       }
-      if (!x.parentHash) {
+      if (!x.selfParentHash) {
         return false;
       }
-      return canSee(findEvent(x.parentHash), y) || canSee(findEvent(x.fromHash), y);
+      return canSee(findEvent(x.selfParentHash), y) || canSee(findEvent(x.fromParentHash), y);
     };
     Object.assign(machine, {
       name: name,
@@ -252,8 +253,8 @@
           circle = Visualizer.circle(eventX, timelineStartY - 22 * eventIndex, 10);
           circle.attr("fill", "#EEE");
           circle.attr("stroke", "#333");
-          if (event.fromHash) {
-            fromEvent = machine.findEvent(event.fromHash);
+          if (event.fromParentHash) {
+            fromEvent = machine.findEvent(event.fromParentHash);
             if (fromEvent && circles[fromEvent.hash]) {
               path = "M " + (circles[fromEvent.hash].attr('cx')) + "," + (circles[fromEvent.hash].attr('cy')) + " L " + (circle.attr('cx')) + " " + (circle.attr('cy'));
               machine.set.push(Visualizer.path(path));

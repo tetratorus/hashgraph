@@ -28,7 +28,7 @@ makeMachine = (name, nodes) ->
       receiver = knownMachines[randomName]
     eventsToSend = []
     for event in events
-      eventsToSend.push node: event.node, hash: event.hash, parentHash: event.parentHash, time: event.time, fromHash: event.fromHash
+      eventsToSend.push node: event.node, hash: event.hash, selfParentHash: event.selfParentHash, time: event.time, fromParentHash: event.fromParentHash
     Visualizer.sendMessage(machine, receiver, JSON.stringify(eventsToSend))
   
   receiveMessage = (message) ->
@@ -47,12 +47,12 @@ makeMachine = (name, nodes) ->
           break
       continue if old
       events.push(receivedEvent)
-      receivedEvent.selfParent = findEvent(receivedEvent.parentHash)
-      receivedEvent.otherParent = findEvent(receivedEvent.fromHash)
+      receivedEvent.selfParent = findEvent(receivedEvent.selfParentHash)
+      receivedEvent.otherParent = findEvent(receivedEvent.fromParentHash)
       learnedSomething = true
     return unless learnedSomething
     
-    newEvent = {node: machine.name, hash: Math.random(), parentHash: getLastEventFrom(name).hash, fromHash: getLastEventFrom(fromNodeName).hash, time: new Date()}
+    newEvent = {node: machine.name, hash: Math.random(), selfParentHash: getLastEventFrom(name).hash, fromParentHash: getLastEventFrom(fromNodeName).hash, time: new Date()}
     events.push(newEvent)
     consensus()
     
@@ -73,33 +73,35 @@ makeMachine = (name, nodes) ->
       determineRound(x)
   
   determineRound = (x) ->
-    unless x.parentHash
+    unless x.selfParentHash
       x.round = 1
       x.witness = true
       return
     
-    parent1 = findEvent(x.parentHash)
+    parent1 = findEvent(x.selfParentHash)
     determineRound(parent1) unless parent1.round
-    parent2 = findEvent(y.fromHash)
-    determineRound(parent2) unless parent2.round
-    
-    see = []
-    stronglySee = []
-    
-    # TODO: move down ancestor tree and build a list of events that can be strongly seen
+    if x.fromParentHash
+      parent2 = findEvent(x.fromParentHash)
+      determineRound(parent2) unless parent2.round
     
     
-    x.witness = x.round > findEvent(x.parentHash).round && x.round > findEvent(x.fromHash).round
+    x.round = Math.max(parent1.round, parent2?.round || 1)
+    
+    # TODO: Find out if event is witness (if yes, round++):
+    # TODO: 1. Find all ancestors with same round
+    # TODO: 2. Find out if event can strongly see events on at least 2/3 nodes with same round
+    # TODO: 3. If yes, set event.witness=true and round++
+    
+    x.witness = x.round > findEvent(x.selfParentHash).round && x.round > findEvent(x.fromParentHash).round
   
   canStronglySee = (x, y) ->
     
   
   canSee = (x, y) ->
-    # XXX: In a better implementation, we would search upwards from Y instead downwards from X
-    return true if (x.parentHash == y.hash) || (x.fromHash == y.hash)
+    return true if (x.selfParentHash == y.hash) || (x.fromParentHash == y.hash)
     # TODO: handle forks
-    return false unless x.parentHash
-    return canSee(findEvent(x.parentHash), y) || canSee(findEvent(x.fromHash), y)
+    return false unless x.selfParentHash
+    return canSee(findEvent(x.selfParentHash), y) || canSee(findEvent(x.fromParentHash), y)
     
   
   Object.assign machine, 
@@ -153,8 +155,8 @@ draw = ->
       circle = Visualizer.circle(eventX, timelineStartY - 22 * eventIndex, 10)
       circle.attr("fill", "#EEE")
       circle.attr("stroke", "#333")
-      if event.fromHash
-        fromEvent = machine.findEvent(event.fromHash)
+      if event.fromParentHash
+        fromEvent = machine.findEvent(event.fromParentHash)
         if fromEvent && circles[fromEvent.hash]
           path = "M #{circles[fromEvent.hash].attr('cx')},#{circles[fromEvent.hash].attr('cy')} L #{circle.attr('cx')} #{circle.attr('cy')}"
           machine.set.push(Visualizer.path(path))
