@@ -1,53 +1,50 @@
 # Hashgraph
 
-This is a [hashgraph](https://en.wikipedia.org/wiki/Hashgraph) implementation written in javascript. It is currently in development and not yet ready to be used.
+This is a [hashgraph](https://en.wikipedia.org/wiki/Hashgraph) implementation written in javascript. It is currently in development and not yet ready to be used. This implementation uses [IPFS](http://ipfs.io) as storage and networking backend.
+
+The goal is a hashgraph impelementation that can be used in any javascript project that is run on several nodes that require some kind of consensus. For example for a replicated log, or state machine.
 
 ## Get Started
 
-NOTE: This code is NOT considered ready for usage before version 1.0.0. Don't use this code if you don't know what you're doing.
+### Installation
 
-You can use hashgraph for any javascript project that is run on several nodes that require some kind of consensus. For example for a replicated log, or state machine.
+The javascript implementation of IPFS is not yet fully featured (IPNS is missing). For now, this project depends on the go-lang implementation to be installed. If you're using Ubuntu, you can use this script to install it:
 
-### Install Hashgraph
+    curl https://raw.githubusercontent.com/buhrmi/hashgraph/master/install.sh | sh
 
-First, install the hashgraph package.
+Then install NPM and the hashgraph package:
 
     npm install hashgraph --save
     
-### Key Generation
+The javascript IPFS implementation seems to depend on some packages that are not automatically installed. Install them, too:
 
-Each node in the hashgraph requires its own public/private keypair. It is using standard [RFC 4716](https://tools.ietf.org/html/rfc4716#section-3.4) keys.
-
-Run the following commands to create a public/private keypair:
-
-    openssl genrsa -out private_key.pem 2048
-    openssl rsa -in private_key.pem -pubout -out public_key.pem
+    npm install -g lodash.isfunction pull-defer readable-stream tar-stream
     
-If you want to protect your private key with a passphrase, use:
+### Usage
 
-    openssl genrsa -passout pass:mypassphrase -out private_key.pem 2048
-    openssl rsa -in private_key.pem -passin pass:mypassphrase -pubout -out public_key.pem
-    
-NOTE: Do not lose your private key file or forget your passphrase. If you do, you will lose all value stored under your public key.
+In your node application, you can create a new hashgraph node like so:
 
-### Set up a node
+    hashgraph = require('hashgraph')(options)
+    hashgraph.init()
 
-Once you created your keys, you can set up a node and optionally join another node on the network very easily. 
+Supported options are:
 
-    var myPublicKey = fs.readFileSync('./public_key.pem').toString();
-    var myPrivateKey = fs.readFileSync('./private_key.pem').toString();
-    
-    var hashgraph = require('hashgraph')({
-      database: 'postgresql://localhost/hashgraph',
-      publicKey: myPublicKey,
-      privateKey: myPrivateKey,
-      passphrase: 'somePassPhrase' // optional
-    });
-    
-    // Optionally, join another node on the network
-    hashgraph.join(someIPv6Address);
+* path: The path to the hashgraph repository. This is an IPFS repository that stores your private key pair and a local copy of the hashgraph data. Default: `~/.hashgraph`
 
-### Maintain consensus
+You can access information about your own hashgraph peer:
+
+    hashgraph.on('ready', function() {
+      console.log(hashgraph.info())
+    })
+
+The `info()` method returns an object with the following properties:
+
+* `peerID`: Your own peer ID.
+* `head`: The Hash of the last event recorded by your peer.
+
+It's a little bit boring to run the network only with one node. You can join another peer like so:
+
+    hashgraph.join(remotePeerID)
 
 After joining another node on the network you can submit transactions to the network like this:
 
