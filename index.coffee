@@ -19,8 +19,8 @@ hashgraph = (_options) ->
   path = options.path
   knownPeerIDs = []
   hashgraph = new EventEmitter()
-  myPeerID = ''
-  head = ''
+  myPeerID = null
+  head = null
   
   
   ########## Private
@@ -41,6 +41,10 @@ hashgraph = (_options) ->
     head = eventHash
     # TODO: publish in IPNS
   
+  getHead = (peerID = myPeerID) ->
+    new Promise (resolve, reject) ->
+      # TODO: use ipns to lookup hash
+      resolve(peerID)
     
   
   ########### Public
@@ -52,36 +56,47 @@ hashgraph = (_options) ->
   
   hashgraph.init = ->
     new Promise (resolve, reject) ->    
-      console.log("Running hashgraph in #{path}")
+      resolve(hashgraph) if myPeerID      
       ipfs = new IPFS(path)
-      
-      ipfs.init {emptyRepo: true}, (err) ->
-        throw err if err && err.message.indexOf('already') == -1 # dont treat existing repo as error. just reuse it.
-        ipfs.load ->
-          ipfs.id().then (result) ->
-            myPeerID = result.id
-            
-            # an Event is a tuple of: ownParentHash, remoteParentHash, myPeerID, time, payload
-            publishEvent(null, null, myPeerID, new Date().getTime(), null)
+      ipfs._repo.exists (err, exists) ->
+        if exists
+          console.log("Using Hashgraph Repo found in #{path}")
+          ipfs.load ->
+            ipfs.id()
               .then (result) ->
-                # result is a mDAGnode
-                hash = mh.toB58String(result.multihash())
-                setHead(hash)
-                hashgraph.emit('ready')
-                resolve()
+                myPeerID = result.id
+                getHead(myPeerID)
+                  .then (hash) ->
+                    head = hash
+                    hashgraph.emit('ready')
+                    resolve(hashgraph)
+                  .catch reject
               .catch reject
-          
-          
-      
-        
-  
+        else
+          console.log("Initializing a new Hashgraph Repo in #{path}")
+          ipfs.init {emptyRepo: true}, (err) ->
+            throw err if err
+            ipfs.load ->
+              ipfs.id().then (result) ->
+                myPeerID = result.id
+                
+                # an Event is a tuple of: ownParentHash, remoteParentHash, myPeerID, time, payload
+                publishEvent(null, null, myPeerID, new Date().getTime(), null)
+                  .then (result) ->
+                    # result is a mDAGnode
+                    hash = mh.toB58String(result.multihash())
+                    setHead(hash)
+                    hashgraph.emit('ready')
+                    resolve(hashgraph)
+                  .catch reject  
   
   hashgraph.sendTransaction = (payload) -> 
     sendTransaction(payload)
   
   hashgraph.join = (peerID) ->
     knownPeerIDs.push(peerID)
-    
+  
+  
   return hashgraph
 
 
