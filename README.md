@@ -12,7 +12,7 @@ The specification is lifted from an [experimental implementation in python](http
 
 The `Data` of the node is a JSON string with the following format:
 
-    Data: {"c": "event peerID", "t": unix time of event (in milliseconds), "d": "event payload"}
+    Data: {"c": "event peerID", "t": unix time of event (in seconds, floating point), "d": "event payload"}
   
 The `Links` of the node point to the parents of the event.
 
