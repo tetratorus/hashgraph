@@ -41,7 +41,7 @@ In your node application, you can create a new hashgraph node like so:
 
 Supported options are:
 
-* path: The path to the hashgraph repository. This is an IPFS repository that stores your private key pair and a local copy of the hashgraph data. Default: `~/.hashgraph`
+* `path`: The path to the hashgraph repository. This is an IPFS repository that stores your private key pair and a local copy of the hashgraph data. Default: `~/.hashgraph`
 
 You can access information about your own hashgraph peer:
 
