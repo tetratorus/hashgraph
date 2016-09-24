@@ -31,11 +31,7 @@ The javascript implementation of IPFS is not yet fully featured (IPNS is missing
 Then install NPM and the hashgraph package:
 
     npm install hashgraph --save
-    
-The javascript IPFS implementation seems to depend on some packages that are not automatically installed. Install them, too:
-
-    npm install -g lodash.isfunction pull-defer readable-stream tar-stream
-    
+        
 ### Usage
 
 In your node application, you can create a new hashgraph node like so:
