@@ -36,10 +36,8 @@ ipfs = (path) ->
     new Promise (resolve, reject) ->
       run(['object', 'put'], data)
         .then (out) ->
-          console.log('RESOLVING YO')
           resolve(out.replace('added ','').replace('\n',''))
         .catch ->
-          console.log('REJECTING YOU')
           reject()
   
   getPeerInfo: ->
