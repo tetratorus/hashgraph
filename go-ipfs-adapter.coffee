@@ -1,4 +1,4 @@
-# TODO: replace with the js ipfs implementation
+# TODO: replace with the js ipfs implementation... or native bindings
 
 spawn = require('child_process').spawn
 
@@ -25,7 +25,7 @@ ipfs = (path) ->
   publish: (value) ->
     run(['name', 'publish', value])
   
-  getPublished: (name) ->
+  resolve: (name) ->
     new Promise (resolve, reject) ->
       run(['name', 'resolve', name])
         .then (out) ->

@@ -41,7 +41,7 @@ hashgraph = (_options) ->
         .catch reject
   
   getHead = (peerID = myPeerID) ->
-    ipfs.getPublished(peerID)
+    ipfs.resolve(peerID)
     
   
   ########### Public
@@ -52,20 +52,17 @@ hashgraph = (_options) ->
     }
   
   hashgraph.init = ->
-    ipfs = require('./go-ipfs-adapter')(path)
     return new Promise (resolve, reject) ->    
       resolve(hashgraph) if myPeerID      
+      ipfs = require('./go-ipfs-adapter')(path)
       co ->
         info = yield ipfs.getPeerInfo()
         if info
           console.log("Using Hashgraph Repo found in #{path}")
           myPeerID = info.ID
-          getHead(myPeerID)
-            .then (hash) ->
-              head = hash
-              hashgraph.emit('ready')
-              resolve(hashgraph)
-            .catch reject
+          head = yield getHead(myPeerID)  
+          hashgraph.emit('ready')
+          resolve(hashgraph)
 
         else
           console.log("Initializing a new Hashgraph Repo in #{path}")
