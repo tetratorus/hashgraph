@@ -2,9 +2,25 @@
 
 This is a [hashgraph](https://en.wikipedia.org/wiki/Hashgraph) implementation written in javascript. It is currently in development and not yet ready to be used. This implementation uses [IPFS](http://ipfs.io) as storage and networking backend.
 
-The goal is a hashgraph impelementation that can be used in any javascript project that is run on several nodes that require some kind of consensus. For example for a replicated log, or state machine.
+The goal of this project is a hashgraph impelementation that can be used in any javascript project that is run on several nodes that require some kind of consensus. For example for a replicated log, stock exchange, ledger, state machine, etc.
 
-## Get Started
+## Specification
+
+For a formal specification of the hashgraph and the hashgraph consensus, please refer to the [white paper](http://www.swirlds.com/downloads/SWIRLDS-TR-2016-01.pdf). The following specification just maps the abstract idea described in the whitepaper to an existing implementation.
+
+The specification is lifted from an [experimental implementation in python](https://github.com/Lapin0t/py-swirld/blob/ipfs/swirld.py) which seemed workable to me. A hashgraph event is stored as a node of the merkel DAG in the IPFS network.
+
+The `Data` of the node is a JSON string with the following format:
+
+  Data: {"c": "event peerID", "t": unix time of event (in milliseconds), "d": "event payload"}
+  
+The `Links` of the node point to the parents of the event.
+
+  Links: [{"Name": "0", "Hash": ownParentHash}, {"Name": "1", "Hash": otherParentHash}]
+
+
+## Getting Started
+
 
 ### Installation
 
